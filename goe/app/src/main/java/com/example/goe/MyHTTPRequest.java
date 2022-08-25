@@ -15,6 +15,7 @@ public class MyHTTPRequest implements Runnable {
     TextView txtOut;
     Activity activity;
     String line2;
+    boolean r = true;
 
     public void setTxtOut(TextView txtOut) {
         this.txtOut = txtOut;
@@ -26,45 +27,46 @@ public class MyHTTPRequest implements Runnable {
     }
 
     @Override
-    public void run(){
-        try {
-            URL url = new URL("http://www.snapmod.com/hello.html");
-            Log.i("goe", "Sending HTTP request ... ");
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+    public void run() {
+        while(r) {
             try {
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-                String line;
+                //URL url = new URL("http://www.snapmod.com/hello.html");
+                //URL url = new URL("http://10.128.250.181/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
+                URL url = new URL("http://192.168.0.22/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
+                Log.i("goe", "Sending HTTP request ... ");
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                try {
+                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                    BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                    String line;
 
-                for (line = br.readLine(); line != null; line = br.readLine()) {
-                    Log.i("goe", line);
-                    line2 += line;
-                }
-
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        TextView worksalso = activity.findViewById(R.id.txtConsole);
-                        worksalso.setText(line2);
-                        //txtOut.setText(line2);
+                    for (line = br.readLine(); line != null; line = br.readLine()) {
+                        Log.i("goe", line);
+                        line2 += line;
                     }
-                });
 
-                Log.i("goe", "Done - closing reader!");
-                br.close();
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextView worksalso = activity.findViewById(R.id.txtConsole);
+                            worksalso.setText(line2);
+                            //txtOut.setText(line2);
+                        }
+                    });
 
-            }
-            catch(Exception ex)
-            {
-                Log.e("go2", ex.getMessage());
-            }
-            finally {
-                urlConnection.disconnect();
-            }
-        }
-        catch(Exception ex)
-        {
+                    Log.i("goe", "Done - closing reader!");
+                    br.close();
 
+                } catch (Exception ex) {
+                    Log.e("goe", ex.getMessage());
+                } finally {
+                    urlConnection.disconnect();
+                }
+            } catch (Exception ex) {
+                Log.e("goe", ex.getMessage());
+            }
+            r = false;
+            //Thread.sleep(10000);
         }
     }
 }
