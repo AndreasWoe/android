@@ -8,16 +8,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -26,6 +22,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
+
+    private Session s = new Session();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,11 +88,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void hello() {
+        Log.i("goe", "Hello");
+
+        TextView c = findViewById(R.id.txtConsole);
+        c.setText(String.valueOf(s.getEto()));
+    }
+
     public void btnOkClick(View view) {
         TextView txtConsole = findViewById(R.id.txtConsole);
 
         MyHTTPRequest http = new MyHTTPRequest(MainActivity.this);
         http.setTxtOut(txtConsole);
+        http.setSession(s);
         ExecutorService mExecutor = Executors.newSingleThreadExecutor();
         mExecutor.execute(http);
     }
