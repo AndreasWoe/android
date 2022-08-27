@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Session s = new Session();
+    private SessionData s = new SessionData();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +91,24 @@ public class MainActivity extends AppCompatActivity {
     public void hello() {
         Log.i("goe", "Hello");
 
-        TextView c = findViewById(R.id.txtConsole);
-        c.setText(String.valueOf(s.getEto()));
+        //TextView c = findViewById(R.id.txtConsole);
+        //c.setText(String.valueOf(s.getEto()));
+
+        TextView time = findViewById(R.id.txtTimestamp);
+        time.setText(String.valueOf(s.getTimestamp()));
+        TextView eto = findViewById(R.id.txtEto);
+        eto.setText(String.valueOf(s.getEto() / 1000.0) + " kWh");
+        TextView amp = findViewById(R.id.txtAmp);
+        amp.setText(String.valueOf(s.getAmp()) + " A");
+        TextView wh = findViewById(R.id.txtWh);
+        wh.setText(String.valueOf(s.getWh() / 1000.0) + " kWh");
+        TextView cdi = findViewById(R.id.txtCdi);
+        int seconds = (int)(s.getCdi() / 1000);
+        int sc = seconds % 60;
+        int m = (seconds / 60) % 60;
+        int h = (seconds / (60 * 60)) % 24;
+
+        cdi.setText(String.valueOf(h) + ":" + String.valueOf(m) + ":" + String.valueOf(sc));
     }
 
     public void btnOkClick(View view) {
@@ -100,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         MyHTTPRequest http = new MyHTTPRequest(MainActivity.this);
         http.setTxtOut(txtConsole);
-        http.setSession(s);
+        http.setSessionData(s);
         ExecutorService mExecutor = Executors.newSingleThreadExecutor();
         mExecutor.execute(http);
     }

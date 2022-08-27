@@ -1,6 +1,5 @@
 package com.example.goe;
 
-import android.app.Activity;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -14,6 +13,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class MyHTTPRequest implements Runnable {
     TextView txtOut;
@@ -21,15 +24,10 @@ public class MyHTTPRequest implements Runnable {
     String data;
     boolean r = true;
 
-    public Session getSession() {
-        return s;
-    }
-
-    public void setSession(Session s) {
+    private SessionData s;
+    public void setSessionData(SessionData s) {
         this.s = s;
     }
-
-    private Session s;
 
     public void setTxtOut(TextView txtOut) {
         this.txtOut = txtOut;
@@ -66,6 +64,8 @@ public class MyHTTPRequest implements Runnable {
                     Log.e("goe", ex.getMessage());
 
                     //activate dummy data
+                    //{"tpa":0,"sse":"101004","eto":333661,"amp":14,"wh":35546.84,"cdi":{"type":0,"value":44940},"nrg":[227,228,227,1,13.8,14.1,13.9,3200,3200,3200,0,9730,100,100,100,9]}
+                    //{"tpa":0,"sse":"101004","eto":334209,"amp":14,"wh":36096.4,"cdi":{"type":1,"value":13413609},"nrg":[231,230,231,1,0,0,0,0,0,0,0,0,0,0,0,0]}
                     data = "{\"tpa\":0,\"sse\":\"101004\",\"eto\":334209,\"amp\":14,\"wh\":36096.4,\"cdi\":{\"type\":1,\"value\":13413609},\"nrg\":[231,230,231,1,0,0,0,0,0,0,0,0,0,0,0,0]}";
                 } finally {
                     urlConnection.disconnect();
@@ -91,7 +91,22 @@ public class MyHTTPRequest implements Runnable {
 
                 int nrg_0 = nrg.getInt(0);
 
+                //fill session data object
+                //---timestamp
+                Date c = Calendar.getInstance().getTime();
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                s.setTimestamp(df.format(c));
+                //---energy total [Wh]
                 s.setEto(eto);
+                //---requested current [A]
+                s.setAmp(amp);
+                //---energy since car connected [Wh]
+                s.setWh(wh);
+                //---charging duration info [ms]
+                if(cdi_type == 1)
+                    s.setCdi(cdi_value);
+                else
+                    s.setCdi(0);
 
                 Log.i("goe", String.valueOf(eto));
             }
