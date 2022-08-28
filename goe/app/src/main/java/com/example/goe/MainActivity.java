@@ -2,6 +2,10 @@ package com.example.goe;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -24,11 +28,17 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     private SessionData s = new SessionData();
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Retrieve a PendingIntent that will perform a broadcast */
+        Intent alarmIntent = new Intent(MainActivity.this, AlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, alarmIntent, 0);
+
     }
 
     public void btnExportClick(View view) {
@@ -85,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
             Log.e("ego", ex.getLocalizedMessage());
         }
 
-
     }
 
     public void hello() {
@@ -119,5 +128,25 @@ public class MainActivity extends AppCompatActivity {
         http.setSessionData(s);
         ExecutorService mExecutor = Executors.newSingleThreadExecutor();
         mExecutor.execute(http);
+
+        start();
+    }
+
+    public void btnCancelClick(View view) {
+        cancel();
+    }
+
+    public void start() {
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        int interval = 60000;
+
+        manager.setRepeating(AlarmManager.RTC_WAKEUP, Calendar.getInstance().getTimeInMillis(), interval, pendingIntent);
+        Log.i("goe", "Alarm Set");
+    }
+
+    public void cancel() {
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        manager.cancel(pendingIntent);
+        Log.i("goe", "Alarm Canceled");
     }
 }
