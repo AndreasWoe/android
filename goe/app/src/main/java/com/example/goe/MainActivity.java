@@ -4,13 +4,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,18 +31,30 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SessionData s = new SessionData();
-    private PendingIntent pendingIntent;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            // The method you want to call every now and then.
+            yourMethod();
+            handler.postDelayed(this,10000);
+        }
+    };
+
+    private void yourMethod() {
+        Log.i("goe", "The magic handler!");
+        MyHTTPRequest http = new MyHTTPRequest(this);
+        ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+        mExecutor.execute(http);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i("goe", "Main Activity Created");
+        handler.postDelayed(runnable, 1000); // Call the handler for the first time.
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Retrieve a PendingIntent that will perform a broadcast */
-        Intent alarmIntent = new Intent(MainActivity.this, AlarmReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, alarmIntent, 0);
-
     }
 
     public void btnExportClick(View view) {
@@ -97,11 +113,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void hello() {
+    public void hello(SessionData s) {
         Log.i("goe", "Hello");
-
-        //TextView c = findViewById(R.id.txtConsole);
-        //c.setText(String.valueOf(s.getEto()));
 
         TextView time = findViewById(R.id.txtTimestamp);
         time.setText(String.valueOf(s.getTimestamp()));
@@ -121,32 +134,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void btnOkClick(View view) {
-        TextView txtConsole = findViewById(R.id.txtConsole);
 
-        MyHTTPRequest http = new MyHTTPRequest(MainActivity.this);
-        http.setTxtOut(txtConsole);
-        http.setSessionData(s);
-        ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-        mExecutor.execute(http);
-
-        start();
     }
 
     public void btnCancelClick(View view) {
-        cancel();
+
     }
 
-    public void start() {
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        int interval = 60000;
-
-        manager.setRepeating(AlarmManager.RTC_WAKEUP, Calendar.getInstance().getTimeInMillis(), interval, pendingIntent);
-        Log.i("goe", "Alarm Set");
-    }
-
-    public void cancel() {
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        manager.cancel(pendingIntent);
-        Log.i("goe", "Alarm Canceled");
-    }
 }

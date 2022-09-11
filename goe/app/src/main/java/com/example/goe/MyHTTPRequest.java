@@ -19,22 +19,12 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MyHTTPRequest implements Runnable {
-    TextView txtOut;
     MainActivity activity;
     String data;
     boolean r = true;
+    SessionData s = new SessionData();
 
-    private SessionData s;
-    public void setSessionData(SessionData s) {
-        this.s = s;
-    }
-
-    public void setTxtOut(TextView txtOut) {
-        this.txtOut = txtOut;
-    }
-
-    public MyHTTPRequest(MainActivity activity)
-    {
+    public MyHTTPRequest(MainActivity activity) {
         this.activity = activity;
     }
 
@@ -42,15 +32,18 @@ public class MyHTTPRequest implements Runnable {
     public void run() {
         while(r) {
             try {
-                //URL url = new URL("http://www.snapmod.com/hello.html");
-                //URL url = new URL("http://10.128.250.181/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
-                URL url = new URL("http://192.168.0.22/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
+
+                //connection via go-e hotspot
+                URL url = new URL("http://10.128.250.181/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
+                //URL url = new URL("http://192.168.188.113/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
+                //URL url = new URL("http://10.0.2.2/go-e/go-e.php");
                 Log.i("goe", "Sending HTTP request ... ");
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 try {
                     InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                     BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
                     String line;
+                    data = "";
 
                     for (line = br.readLine(); line != null; line = br.readLine()) {
                         Log.i("goe", line);
@@ -91,6 +84,8 @@ public class MyHTTPRequest implements Runnable {
 
                 int nrg_0 = nrg.getInt(0);
 
+
+
                 //fill session data object
                 //---timestamp
                 Date c = Calendar.getInstance().getTime();
@@ -118,17 +113,13 @@ public class MyHTTPRequest implements Runnable {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    /*
-                    TextView worksalso = activity.findViewById(R.id.txtConsole);
-                    worksalso.setText(data);
-                    //txtOut.setText(line2);
-                    */
-                    activity.hello();
+                    activity.hello(s);
                 }
             });
 
+            Log.i("goe", s.toString());
+
             r = false;
-            //Thread.sleep(10000);
         }
     }
 }

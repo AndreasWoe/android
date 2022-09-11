@@ -47,4 +47,15 @@ public class SessionData {
     public void setCdi(double cdi) {
         this.cdi = cdi;
     }
+
+    @Override
+    public String toString() {
+        return "SessionData{" +
+                "timestamp='" + timestamp + '\'' +
+                ", eto=" + eto +
+                ", amp=" + amp +
+                ", wh=" + wh +
+                ", cdi=" + cdi +
+                '}';
+    }
 }
