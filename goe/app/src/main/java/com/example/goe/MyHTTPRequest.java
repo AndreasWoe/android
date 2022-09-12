@@ -20,15 +20,13 @@ import java.util.Locale;
 
 public class MyHTTPRequest {
 
-    public SessionData doRequest() {
+    public SessionData doRequest(String ip) {
         SessionData s = new SessionData();
         String data = "";
 
         try {
-            //connection via go-e hotspot
-            URL url = new URL("http://10.128.250.181/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
-            //URL url = new URL("http://192.168.188.113/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
-            //URL url = new URL("http://10.0.2.2/go-e/go-e.php");
+            //connection via go-e IP address
+            URL url = new URL("http://" + ip + "/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
             Log.i("goe", "Sending HTTP request ... ");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             try {

@@ -1,5 +1,6 @@
 package com.example.goe;
 
+import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlarmManager;
@@ -11,9 +12,12 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,28 +36,37 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Handler handler;
+    private Handler bgHandler;
+    private Handler uiHandler;
+
+    private String goeIp = "10.128.250.181";
 
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            // The method you want to call every now and then.
             MyHTTPRequest httprq = new MyHTTPRequest();
-            SessionData sd = httprq.doRequest();
-            
-            Message msg = handler.obtainMessage(1, sd);
-            //handler.sendEmptyMessage(1);
-            //handler.sendMessage(msg);
+            SessionData sd = httprq.doRequest(goeIp);
+            //send received data to handler
+            Message msg = uiHandler.obtainMessage(1, sd);
             msg.sendToTarget();
-            handler.postDelayed(this,10000);
+            //repeat
+            bgHandler.postDelayed(this,10000);
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i("goe", "Main Activity Created");
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        handler  = new Handler() {
+        //initialize handler
+        HandlerThread thread = new HandlerThread("bg-thread");
+        thread.start();
+
+        //https://gist.github.com/ErikHellman/148434264edb186d5498
+        bgHandler  = new Handler(thread.getLooper());
+        uiHandler  = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 if(msg.what == 1) {
@@ -66,12 +79,14 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("goe", "Other");
             }
         };
+    }
 
-        //https://developer.android.com/guide/background/threading
-        handler.postDelayed(runnable, 1000); // Call the handler for the first time.
-
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        bgHandler.removeCallbacksAndMessages(null);
+        uiHandler.removeCallbacksAndMessages(null);
+        // Shut down the background thread
+        bgHandler.getLooper().quit();
     }
 
     public void btnExportClick(View view) {
@@ -151,11 +166,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void btnOkClick(View view) {
+        EditText txtIp = findViewById(R.id.txtIp);
+        this.goeIp = txtIp.getText().toString();
+
+        //https://developer.android.com/guide/background/threading
+        //handler.postDelayed(runnable, 1000); // Call the handler for the first time.
+        bgHandler.post(runnable);
 
     }
 
     public void btnCancelClick(View view) {
-
+        bgHandler.removeCallbacks(runnable);
     }
 
 }
