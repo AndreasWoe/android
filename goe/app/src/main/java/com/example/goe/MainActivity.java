@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -31,21 +32,19 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Handler handler = new Handler();
+    private Handler handler;
+
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
             // The method you want to call every now and then.
             MyHTTPRequest httprq = new MyHTTPRequest();
             SessionData sd = httprq.doRequest();
-
-            MainActivity.this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    MainActivity.this.hello(sd);
-                }
-            });
-
+            
+            Message msg = handler.obtainMessage(1, sd);
+            //handler.sendEmptyMessage(1);
+            //handler.sendMessage(msg);
+            msg.sendToTarget();
             handler.postDelayed(this,10000);
         }
     };
@@ -53,6 +52,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i("goe", "Main Activity Created");
+
+        handler  = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if(msg.what == 1) {
+                    Log.i("goe", "One");
+                    SessionData sd = (SessionData) msg.obj;
+                    //do GUI update
+                    hello(sd);
+                }
+                else
+                    Log.i("goe", "Other");
+            }
+        };
+
         //https://developer.android.com/guide/background/threading
         handler.postDelayed(runnable, 1000); // Call the handler for the first time.
 
