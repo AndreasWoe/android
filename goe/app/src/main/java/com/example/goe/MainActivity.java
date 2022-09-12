@@ -36,21 +36,24 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             // The method you want to call every now and then.
-            yourMethod();
+            MyHTTPRequest httprq = new MyHTTPRequest();
+            SessionData sd = httprq.doRequest();
+
+            MainActivity.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.this.hello(sd);
+                }
+            });
+
             handler.postDelayed(this,10000);
         }
     };
 
-    private void yourMethod() {
-        Log.i("goe", "The magic handler!");
-        MyHTTPRequest http = new MyHTTPRequest(this);
-        ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-        mExecutor.execute(http);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i("goe", "Main Activity Created");
+        //https://developer.android.com/guide/background/threading
         handler.postDelayed(runnable, 1000); // Call the handler for the first time.
 
         super.onCreate(savedInstanceState);
