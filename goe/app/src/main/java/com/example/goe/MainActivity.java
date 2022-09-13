@@ -1,6 +1,7 @@
 package com.example.goe;
 
 import androidx.annotation.WorkerThread;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlarmManager;
@@ -16,6 +17,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -39,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     private Handler bgHandler;
     private Handler uiHandler;
 
+    private static final int MENU_ITEM_ITEM1 = 1;
+
     private String goeIp = "10.128.250.181";
 
     private Runnable runnable = new Runnable() {
@@ -55,8 +60,32 @@ public class MainActivity extends AppCompatActivity {
     };
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(Menu.NONE, MENU_ITEM_ITEM1, Menu.NONE, "Hello");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch(item.getItemId()) {
+            case MENU_ITEM_ITEM1:
+                Log.i("goe", "Menu clicked!");
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i("goe", "Main Activity Created");
+
+        ActionBar actionBar = this.getSupportActionBar();
+        actionBar.setTitle("go-eCharger");
+        actionBar.setSubtitle("... charger log!");
+        //actionBar.hide();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -72,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
                 if(msg.what == 1) {
                     Log.i("goe", "One");
                     SessionData sd = (SessionData) msg.obj;
+                    //export to txt file
+                    export(sd);
                     //do GUI update
                     hello(sd);
                 }
@@ -89,9 +120,7 @@ public class MainActivity extends AppCompatActivity {
         bgHandler.getLooper().quit();
     }
 
-    public void btnExportClick(View view) {
-        TextView txtConsole = findViewById(R.id.txtConsole);
-
+    public void export(SessionData data) {
         final String TXTNAME = "config.txt";
 
         File dataDir = Environment.getDataDirectory();
@@ -116,16 +145,17 @@ public class MainActivity extends AppCompatActivity {
             String q = "\""; //quotation mark
             String s = ";"; //separator
 
-            osw.write(q + formattedDate + q + s);
+            osw.write(data.toString());
             osw.write(System.lineSeparator());
 
             osw.flush();
             osw.close();
         }
         catch (Exception ex) {
-            Log.e("ego", ex.getLocalizedMessage());
+            //went wrong
         }
 
+        /*
         try {
             final File file = new File(currentTXTPathEx);
             FileInputStream fis = new FileInputStream(file);
@@ -142,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         catch (Exception ex) {
             Log.e("ego", ex.getLocalizedMessage());
         }
-
+        */
     }
 
     public void hello(SessionData s) {
@@ -165,17 +195,16 @@ public class MainActivity extends AppCompatActivity {
         cdi.setText(String.valueOf(h) + ":" + String.valueOf(m) + ":" + String.valueOf(sc));
     }
 
-    public void btnOkClick(View view) {
+    public void btnStartClick(View view) {
         EditText txtIp = findViewById(R.id.txtIp);
         this.goeIp = txtIp.getText().toString();
 
         //https://developer.android.com/guide/background/threading
         //handler.postDelayed(runnable, 1000); // Call the handler for the first time.
         bgHandler.post(runnable);
-
     }
 
-    public void btnCancelClick(View view) {
+    public void btnStopClick(View view) {
         bgHandler.removeCallbacks(runnable);
     }
 
