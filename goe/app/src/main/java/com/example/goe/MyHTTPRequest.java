@@ -29,6 +29,8 @@ public class MyHTTPRequest {
             URL url = new URL("http://" + ip + "/api/status?filter=tpa,sse,eto,amp,wh,cdi,nrg");
             Log.i("goe", "Sending HTTP request ... ");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setConnectTimeout(1000);
+            urlConnection.setReadTimeout(1000);
             try {
                 InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                 BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));

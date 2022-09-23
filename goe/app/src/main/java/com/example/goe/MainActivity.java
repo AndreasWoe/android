@@ -10,12 +10,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,6 +39,9 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+
 public class MainActivity extends AppCompatActivity {
 
     private Handler bgHandler;
@@ -45,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int MENU_ITEM_ITEM1 = 1;
 
     private String goeIp = "10.128.250.181";
+
+    protected static WakeLock wakeLock = null;
 
     private Runnable runnable = new Runnable() {
         @Override
@@ -71,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
         switch(item.getItemId()) {
             case MENU_ITEM_ITEM1:
                 Log.i("goe", "Menu clicked!");
+                //close app
+                finishAndRemoveTask();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -80,6 +89,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i("goe", "Main Activity Created");
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "goe:DoNotSleep");
+        wakeLock.acquire();
 
         ActionBar actionBar = this.getSupportActionBar();
         actionBar.setTitle("go-eCharger");
@@ -114,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override protected void onDestroy() {
         super.onDestroy();
+        //release wake lock
+        wakeLock.release();
+
         bgHandler.removeCallbacksAndMessages(null);
         uiHandler.removeCallbacksAndMessages(null);
         // Shut down the background thread
