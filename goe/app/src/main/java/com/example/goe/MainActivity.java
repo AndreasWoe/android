@@ -1,48 +1,35 @@
 package com.example.goe;
 
-import androidx.annotation.WorkerThread;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.provider.Settings;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.io.BufferedReader;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
 
 public class MainActivity extends AppCompatActivity {
+
+    HandlerThread thread;
 
     private Handler bgHandler;
     private Handler uiHandler;
@@ -56,13 +43,22 @@ public class MainActivity extends AppCompatActivity {
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            MyHTTPRequest httprq = new MyHTTPRequest();
-            SessionData sd = httprq.doRequest(goeIp);
-            //send received data to handler
-            Message msg = uiHandler.obtainMessage(1, sd);
-            msg.sendToTarget();
-            //repeat
-            bgHandler.postDelayed(this,10000);
+            try {
+                while(!Thread.currentThread().isInterrupted()) {
+                    MyHTTPRequest httprq = new MyHTTPRequest();
+                    SessionData sd = httprq.doRequest(goeIp);
+                    //send received data to handler
+                    Message msg = uiHandler.obtainMessage(1, sd);
+                    msg.sendToTarget();
+                    //repeat
+                    //bgHandler.postDelayed(this, 5 * 60 * 1000);
+                    Thread.sleep(30 * 1000);
+                }
+            }
+            catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            Log.i("goe", "Background Thread interrupted!");
         }
     };
 
@@ -103,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //initialize handler
-        HandlerThread thread = new HandlerThread("bg-thread");
+        thread = new HandlerThread("bg-thread");
         thread.start();
 
         //https://gist.github.com/ErikHellman/148434264edb186d5498
@@ -126,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override protected void onDestroy() {
-        super.onDestroy();
         //release wake lock
         wakeLock.release();
 
@@ -134,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
         uiHandler.removeCallbacksAndMessages(null);
         // Shut down the background thread
         bgHandler.getLooper().quit();
+
+        super.onDestroy();
     }
 
     public void export(SessionData data) {
@@ -221,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void btnStopClick(View view) {
+        thread.interrupt();
         bgHandler.removeCallbacks(runnable);
     }
 
