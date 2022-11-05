@@ -38,7 +38,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @NonNull
     @Override
     public Loader<ArrayList> onCreateLoader(int id, @Nullable Bundle args) {
-        return new RSSReader(this, "https://rss.orf.at/news.xml");
+        String url = "";
+
+        if (args != null) {
+            url = args.getString("url");
+        }
+
+        return new RSSReader(this, url);
     }
 
     @Override
@@ -77,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         //t.start();
 
         Bundle queryBundle = new Bundle();
-        queryBundle.putString("queryString", "Hello World");
+        queryBundle.putString("url", "https://rss.orf.at/news.xml");
         getSupportLoaderManager().restartLoader(0, queryBundle, this);
     }
 }
