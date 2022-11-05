@@ -25,8 +25,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+//Text and scrolling views
 //https://developer.android.com/codelabs/android-training-text-and-scrolling-views#3
+//Async task and internet connection
 //https://developer.android.com/codelabs/android-training-asynctask-asynctaskloader#5
+//How to parse XML data
+//https://developer.android.com/training/basics/network-ops/xml
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList> {
     private final String TAG = "RSSReader";
 

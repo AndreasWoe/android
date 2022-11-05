@@ -45,8 +45,7 @@ public class RSSReader extends AsyncTaskLoader<ArrayList> {
         catch (Exception ex) {
             Log.i(TAG, ex.toString());
         }
-        //How to parse XML data
-        //https://developer.android.com/training/basics/network-ops/xml
+
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(false);
